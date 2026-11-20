@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pomodoro To-Do</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="layout">
+
+    <!-- To-Do (data dari API, logika di js/tasks.js) -->
+    <section class="panel" id="panel-tasks" aria-labelledby="tasks-title">
+      <h2 id="tasks-title">To-Do list</h2>
+      <form id="task-form" class="task-form">
+        <input id="task-title" type="text" placeholder="Tugas baru" required>
+        <input id="task-deadline" type="datetime-local" aria-label="Deadline">
+        <button type="submit">Tambah tugas</button>
+      </form>
+      <p id="task-count" class="muted">0/0 selesai</p>
+      <p id="task-error" class="error" role="alert" hidden></p>
+      <ul id="task-list" class="task-list"></ul>
+    </section>
+
+    <!-- Timer (logika di js/timer.js, penghubung di js/main.js) -->
+    <section class="panel" id="panel-timer" aria-labelledby="timer-title">
+      <h2 id="timer-title">Timer</h2>
+      <div id="timer-display" class="timer-display" aria-live="off">25:00</div>
+      <p id="timer-phase" class="muted">Fokus, putaran 1 dari 2</p>
+      <div class="timer-settings">
+        <label>Kerja (menit) <input id="set-work" type="number" min="1" value="25"></label>
+        <label>Istirahat (menit) <input id="set-break" type="number" min="1" value="5"></label>
+        <label>Putaran <input id="set-loop" type="number" min="1" value="2"></label>
+      </div>
+      <div class="timer-buttons">
+        <button id="btn-start" type="button">Mulai</button>
+        <button id="btn-pause" type="button">Jeda</button>
+        <button id="btn-reset" type="button">Atur ulang</button>
+      </div>
+    </section>
+
+    <!-- Notes (belum ada logika, silakan dikembangkan) -->
+    <section class="panel" id="panel-notes" aria-labelledby="notes-title">
+      <h2 id="notes-title">Notes</h2>
+      <textarea id="notes-area" placeholder="Tulis catatan di sini"></textarea>
+    </section>
+
+  </main>
+
+  <!-- Urutan penting: deadline, timer, tasks, lalu main -->
+  <script src="js/deadline.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
