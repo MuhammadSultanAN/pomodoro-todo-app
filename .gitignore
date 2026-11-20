@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Data lokal (tiap orang punya data sendiri saat testing)
+backend/data/*.json
+
+# Build output
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
