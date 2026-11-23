@@ -50,13 +50,16 @@ pomodoro_todo_app/
    ```bash
    git checkout develop
    git pull origin develop
-   git checkout -b feature/nama-fitur
+   git checkout -b nama-branch-bebas
    ```
 2. Kerjakan fitur, lalu commit:
    ```bash
    git add .
-   git commit -m "feat: deskripsi singkat"
-   git push -u origin feature/nama-fitur
+   git commit -m "deskripsi commit (misal: initial struktur utama backend, update UI/UX, fix bug timer, dll)"
+   git push -u nama-branch-bebas
    ```
-3. Buka **Pull Request** ke `develop`, minta minimal 1 teman untuk review.
-4. Setelah di-approve, merge. Jangan push langsung ke `main` atau `develop`.
+3. Buat **Pull Request** ke `develop`. Request akan diurus oleh Andrie. Setidaknya salah satu selain pembuat request approve dengan pull request agar bisa dilakukan merging ke develop.
+
+4. Bila approve, request akan merge ke develop.
+
+5. Bila semua sudah selesai, develop akan merge dengan main.
