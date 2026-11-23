@@ -8,7 +8,7 @@ Aplikasi web To-Do List, Notes, dan Pomodoro Timer dengan sistem gamifikasi.
 - Warna tugas berubah saat deadline mendekat
 - Tugas bisa diurutkan berdasarkan deadline terdekat
 - Notes (pending approval)
-- Gamifikasi (level) (pending approval)
+- Gamifikasi (streak harian)
 
 ## Pembagian Tugas
 | Bagian | Anggota |
