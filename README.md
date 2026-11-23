@@ -7,48 +7,43 @@ Aplikasi web To-Do List, Notes, dan Pomodoro Timer dengan sistem gamifikasi.
 - Pomodoro Timer (durasi work, break, dan loop bisa diatur)
 - Warna tugas berubah saat deadline mendekat
 - Tugas bisa diurutkan berdasarkan deadline terdekat
-- Notes
-- Gamifikasi (level)
-
-## Tech Stack
-| Bagian | Teknologi |
-|---|---|
-| Frontend | HTML, CSS, JavaScript |
-| Backend | Node.js + Express |
-| Penyimpanan | File JSON (`backend/data/tasks.json`) |
-| Version control | Git + GitHub |
-
-## Struktur Folder
-```
-pomodoro-todo-app/
-├── frontend/        # Tampilan (HTML, CSS) dan logika di browser
-│   ├── index.html
-│   ├── css/
-│   └── js/          # termasuk timer.js (logika Pomodoro)
-├── backend/         # Server Express + API CRUD tugas
-│   └── data/        # Penyimpanan data (tidak di-commit)
-├── docs/            # Kesepakatan format data dan API
-└── .github/         # Template Pull Request
-```
-
-## Cara Menjalankan
-Pastikan [Node.js](https://nodejs.org) (versi LTS) sudah terinstall.
-
-```bash
-git clone https://github.com/MuhammadSultanAN/pomodoro-todo-app.git
-cd pomodoro-todo-app/backend
-npm install
-npm start
-```
-Buka `http://localhost:3000` di browser.
+- Notes (pending approval)
+- Gamifikasi (level) (pending approval)
 
 ## Pembagian Tugas
-| Anggota | Peran | Tugas | Branch |
-|---|---|---|---|
-| (isi nama) | UI/UX | Layout, desain, tampilan semua komponen | `feature/ui-layout` |
-| (isi nama) | Backend | API CRUD tugas | `feature/backend-crud` |
-| (isi nama) | Timer | Logika Pomodoro (work, break, loop) | `feature/pomodoro-timer` |
-| (isi nama) | Integrasi | Gabungkan timer + UI, warna deadline, sorting | `feature/deadline-sorting` |
+| Bagian | Anggota |
+|---|---|
+| Frontend | Kharisma |
+| Backend | Andrie |
+| Timer | Sultan |
+| Integration (gabungin front+back)? | Azzam |
+
+## Struktur Folder (hasil Gemini, bisa restrukturisasi lagi bila perlu)
+```
+pomodoro_todo_app/
+├── data/                      # Auto-generated folder where your save files go
+│   └── tasks.dat              # The file FileStorage.java will read/write
+├── src/
+│   ├── model/                 # ➔ Andrie (CRUD Backend)
+│   │   └── Task.java          # The blueprint of a task (id, title, deadline, pomodoros)
+│   │
+│   ├── storage/               # ➔ Andrie (CRUD Backend)
+│   │   └── FileStorage.java   # Handles saving and loading the ArrayList to tasks.dat
+│   │
+│   ├── controller/            # ➔ Andrie & Sultan
+│   │   ├── TaskManager.java   # Andrie: ArrayList logic (add, edit, delete, sort)
+│   │   └── TimerLogic.java    # Sultan: The countdown math and threading
+│   │
+│   ├── ui/                    # ➔ UI/UX & INTEGRATION PERSON
+│   │   ├── MainFrame.java     # Kharisma: The main application window
+│   │   ├── TaskPanel.java     # Kharisma: The UI design for a single task row
+│   │   └── TimerPanel.java    # Kharisma & Sultan: The visual clock and start/stop buttons
+│   │
+│   └── Main.java              # ➔ INTEGRATION
+│                              # Azzam: The entry point that boots up the UI 
+│                              # and connects the TaskManager to the MainFrame
+└── README.md
+```
 
 ## Alur Kontribusi
 1. Ambil kode terbaru dan buat branch dari `develop`:
@@ -65,15 +60,3 @@ Buka `http://localhost:3000` di browser.
    ```
 3. Buka **Pull Request** ke `develop`, minta minimal 1 teman untuk review.
 4. Setelah di-approve, merge. Jangan push langsung ke `main` atau `develop`.
-
-### Format commit
-| Prefix | Dipakai untuk |
-|---|---|
-| `feat:` | Fitur baru |
-| `fix:` | Perbaikan bug |
-| `style:` | Perubahan tampilan / CSS |
-| `docs:` | Dokumentasi |
-| `refactor:` | Merapikan kode tanpa ubah fungsi |
-
-## Dokumentasi
-- [Format data dan kontrak API](docs/data-format.md)
