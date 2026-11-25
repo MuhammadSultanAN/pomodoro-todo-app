@@ -53,4 +53,18 @@ public class TaskManager{
       taskList.remove(targetTask);
     }
   }
+
+  // Mengurutkan tugas dari deadline paling cepat (Insertion Sort)
+  public void sortByDeadline() {
+    for (int i = 1; i < taskList.size(); i++) {
+        Task key = taskList.get(i);
+        int j = i - 1;
+
+        while (j >= 0 && taskList.get(j).getDeadline().isAfter(key.getDeadline())) {
+            taskList.set(j + 1, taskList.get(j));
+            j--;
+        }
+        taskList.set(j + 1, key);
+    }
+  }
 }

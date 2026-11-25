@@ -1,10 +1,27 @@
 package ui;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import controller.TaskManager;
+import model.Task;
+import javax.swing.table.DefaultTableModel;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class TaskPanel extends JPanel {
     private final JPanel formPanel;
+    private final TaskManager taskManager = new TaskManager();
+    private final DefaultTableModel tableModel = new DefaultTableModel(new String[] { "Task", "Deadline" }, 0) {
+        @Override
+        public boolean isCellEditable(int r, int c) {
+            return false;
+        }
+    };
+    private JTable taskTable;
+    private JTextField nameField, deadlineField;
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public TaskPanel() {
         Theme.pageHeader(this, "My Tasks", "Organize your daily activities.");
@@ -22,7 +39,7 @@ public class TaskPanel extends JPanel {
         JLabel sortLabel = new JLabel("Sort by:");
         sortLabel.setForeground(Theme.BROWN);
         sort.add(sortLabel);
-        sort.add(new JComboBox<>(new String[]{"Nearest Deadline", "Farthest Deadline", "Recently Added"}));
+        sort.add(new JComboBox<>(new String[] { "Nearest Deadline", "Farthest Deadline", "Recently Added" }));
         add(sort);
         add(Box.createVerticalStrut(12));
 
@@ -31,11 +48,15 @@ public class TaskPanel extends JPanel {
         add(formPanel);
         add(Box.createVerticalStrut(12));
 
-        JPanel cards = new JPanel();
-        cards.setOpaque(false);
-        cards.setLayout(new BoxLayout(cards, BoxLayout.Y_AXIS));
-        cards.add(sampleCard());
-        JScrollPane scroll = new JScrollPane(cards);
+        taskTable = new JTable(tableModel);
+        taskTable.setRowHeight(28);
+
+        DeadlineCellRenderer renderer = new DeadlineCellRenderer(taskManager);
+        for (int i = 0; i < taskTable.getColumnCount(); i++) {
+            taskTable.getColumnModel().getColumn(i).setCellRenderer(renderer);
+        }
+
+        JScrollPane scroll = new JScrollPane(taskTable);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setOpaque(false);
         scroll.setOpaque(false);
@@ -61,6 +82,32 @@ public class TaskPanel extends JPanel {
         formPanel.repaint();
     }
 
+    private void saveTask() {
+        String title = nameField.getText().trim();
+        if (title.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama tugas tidak boleh kosong.");
+            return;
+        }
+        try {
+            LocalDateTime deadline = LocalDateTime.parse(deadlineField.getText().trim(), FMT);
+            taskManager.addTask(title, deadline);
+            refreshTable();
+            nameField.setText("");
+            deadlineField.setText("");
+            toggleForm(false);
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Format deadline salah. Contoh: 2026-12-01 14:30");
+        }
+    }
+
+    private void refreshTable() {
+        taskManager.sortByDeadline();
+        tableModel.setRowCount(0);
+        for (Task t : taskManager.getAllTasks()) {
+            tableModel.addRow(new Object[] { t.getTitle(), t.getDeadline().format(FMT) });
+        }
+    }
+
     private JPanel buildForm() {
         JPanel form = Theme.cardPanel();
         form.setLayout(new GridBagLayout());
@@ -69,16 +116,20 @@ public class TaskPanel extends JPanel {
         g.fill = GridBagConstraints.HORIZONTAL;
         g.weightx = 1;
 
-        g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
+        g.gridx = 0;
+        g.gridy = 0;
+        g.gridwidth = 2;
         form.add(Theme.label("Add New Task", 22, Theme.DARK_BROWN, true), g);
-        g.gridwidth = 1; g.gridy++;
+        g.gridwidth = 1;
+        g.gridy++;
         form.add(new JLabel("Task Name"), g);
-        JTextField name = new JTextField();
-        Theme.styleInput(name);
+        nameField = new JTextField();
+        Theme.styleInput(nameField);
         g.gridx = 1;
-        form.add(name, g);
+        form.add(nameField, g);
 
-        g.gridx = 0; g.gridy++;
+        g.gridx = 0;
+        g.gridy++;
         form.add(new JLabel("Description"), g);
         JTextArea desc = new JTextArea(3, 20);
         desc.setLineWrap(true);
@@ -89,22 +140,24 @@ public class TaskPanel extends JPanel {
         g.gridx = 1;
         form.add(new JScrollPane(desc), g);
 
-        g.gridx = 0; g.gridy++;
+        g.gridx = 0;
+        g.gridy++;
         form.add(new JLabel("Deadline (yyyy-MM-dd HH:mm)"), g);
-        JTextField deadline = new JTextField();
-        Theme.styleInput(deadline);
+        deadlineField = new JTextField();
+        Theme.styleInput(deadlineField);
         g.gridx = 1;
-        form.add(deadline, g);
+        form.add(deadlineField, g);
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT));
         actions.setOpaque(false);
         JButton save = Theme.button("Save Task", Theme.SAGE, Color.WHITE);
         JButton cancel = Theme.button("Cancel", Theme.ROSE, Color.WHITE);
-        save.addActionListener(e -> toggleForm(false));
+        save.addActionListener(e -> saveTask());
         cancel.addActionListener(e -> toggleForm(false));
         actions.add(save);
         actions.add(cancel);
-        g.gridx = 1; g.gridy++;
+        g.gridx = 1;
+        g.gridy++;
         form.add(actions, g);
         return form;
     }
@@ -145,4 +198,5 @@ public class TaskPanel extends JPanel {
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
         return card;
     }
+
 }
