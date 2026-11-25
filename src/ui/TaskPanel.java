@@ -109,7 +109,6 @@ public class TaskPanel extends JPanel {
         return form;
     }
 
-    /** Kartu tugas contoh (statis) supaya tampilannya terlihat. */
     private JPanel sampleCard() {
         Color accent = Theme.SAGE;
         JPanel card = Theme.cardPanel();
