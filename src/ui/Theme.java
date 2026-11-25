@@ -1,6 +1,8 @@
 package ui;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.plaf.basic.BasicButtonUI;
+
 import java.awt.*;
 
 public final class Theme {
@@ -36,13 +38,19 @@ public final class Theme {
 
     public static JButton button(String text, Color bg, Color fg) {
         JButton b = new JButton(text);
+        b.setUI(new BasicButtonUI());
         b.setFont(sans(13, Font.BOLD));
         b.setForeground(fg);
         b.setBackground(bg);
-        b.setFocusPainted(false);
-        b.setBorder(new CompoundBorder(new LineBorder(bg.darker(), 1), new EmptyBorder(10, 18, 10, 18)));
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setOpaque(true);
+        b.setContentAreaFilled(true);
+        b.setFocusPainted(false);
+        b.setBorderPainted(true);
+        b.setBorder(new CompoundBorder(
+            new LineBorder(bg.darker(), 1),
+            new EmptyBorder(10, 18, 10, 18)
+        ));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return b;
     }
 
