@@ -248,5 +248,13 @@ public class TimerLogic {
             listener.onTick(remainingSeconds, currentSession);
         }
     }
+
+    // Pindah langsung ke jenis sesi tertentu (dipakai tombol mode di GUI)
+    public void setSession(SessionType type) {
+        swingTimer.stop();
+        currentSession = type;
+        remainingSeconds = getDurationInSeconds(type);
+        notifyTick();
+}
 }
  

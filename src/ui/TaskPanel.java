@@ -15,14 +15,15 @@ import java.util.List;
 
 public class TaskPanel extends JPanel {
     private static class Item {
-        final String name, description;
-        final LocalDateTime deadline;
-        Item(String name, String description, LocalDateTime deadline) {
-            this.name = name;
-            this.description = description;
-            this.deadline = deadline;
-        }
+    String name, description;
+    LocalDateTime deadline;
+    boolean done = false;
+    Item(String name, String description, LocalDateTime deadline) {
+        this.name = name;
+        this.description = description;
+        this.deadline = deadline;
     }
+}
 
     private static final DateTimeFormatter INPUT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final DateTimeFormatter SHOW_FMT = DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm");
@@ -32,6 +33,8 @@ public class TaskPanel extends JPanel {
     private JTextField nameField, deadlineField;
     private JTextArea descriptionArea;
     private JComboBox<String> sortBox;
+    private Item editingItem = null;   // null = mode tambah, isi = mode edit
+    private JLabel formTitle;
 
     public TaskPanel() {
         Theme.pageHeader(this, "My Tasks", "Organize your daily activities.");
@@ -96,6 +99,15 @@ public class TaskPanel extends JPanel {
         formPanel.repaint();
     }
 
+    private void closeForm() {
+    editingItem = null;
+    formTitle.setText("Add New Task");
+    nameField.setText("");
+    descriptionArea.setText("");
+    deadlineField.setText("");
+    toggleForm(false);
+    }
+
     private JPanel buildForm() {
         JPanel form = Theme.cardPanel();
         form.setLayout(new GridBagLayout());
@@ -105,7 +117,8 @@ public class TaskPanel extends JPanel {
         g.weightx = 1;
 
         g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
-        form.add(Theme.label("Add New Task", 22, Theme.DARK_BROWN, true), g);
+        formTitle = Theme.label("Add New Task", 22, Theme.DARK_BROWN, true);
+        form.add(formTitle, g);
         g.gridwidth = 1; g.gridy++;
         form.add(new JLabel("Task Name"), g);
         nameField = new JTextField();
@@ -136,7 +149,7 @@ public class TaskPanel extends JPanel {
         JButton save = Theme.button("Save Task", Theme.SAGE, Color.WHITE);
         JButton cancel = Theme.button("Cancel", Theme.ROSE, Color.WHITE);
         save.addActionListener(e -> saveTask());
-        cancel.addActionListener(e -> toggleForm(false));
+        cancel.addActionListener(e -> closeForm());
         actions.add(save);
         actions.add(cancel);
         g.gridx = 1; g.gridy++;
@@ -163,11 +176,14 @@ public class TaskPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Format deadline harus yyyy-MM-dd HH:mm\nContoh: 2026-12-31 18:00");
             return;
         }
-        items.add(new Item(name, descriptionArea.getText().trim(), deadline));
-        nameField.setText("");
-        descriptionArea.setText("");
-        deadlineField.setText("");
-        toggleForm(false);
+        if (editingItem != null) {
+            editingItem.name = name;
+            editingItem.description = descriptionArea.getText().trim();
+            editingItem.deadline = deadline;
+        } else {
+            items.add(new Item(name, descriptionArea.getText().trim(), deadline));
+        }
+        closeForm();
         render();
     }
 
@@ -218,12 +234,15 @@ public class TaskPanel extends JPanel {
 
     private JPanel buildCard(Item t) {
         long days = ChronoUnit.DAYS.between(LocalDate.now(), t.deadline.toLocalDate());
+        boolean lewat = t.deadline.isBefore(LocalDateTime.now());
+
         Color accent;
         String status;
-        if (days < 0)       { accent = new Color(173, 105, 105); status = "Overdue"; }
-        else if (days == 0) { accent = new Color(193, 124, 83);  status = "Due Today"; }
-        else if (days <= 3) { accent = new Color(198, 167, 93);  status = "Approaching Deadline"; }
-        else                { accent = Theme.SAGE;               status = "Safe"; }
+        if (t.done)            { accent = Color.GRAY;               status = "Completed"; }
+        else if (lewat || days < 0) { accent = new Color(173, 105, 105); status = "Overdue"; }
+        else if (days == 0)    { accent = new Color(193, 124, 83);  status = "Due Today"; }
+        else if (days <= 3)    { accent = new Color(198, 167, 93);  status = "Approaching Deadline"; }
+        else                   { accent = Theme.SAGE;               status = "Safe"; }
 
         JPanel card = Theme.cardPanel();
         card.setLayout(new BorderLayout(10, 5));
@@ -249,9 +268,36 @@ public class TaskPanel extends JPanel {
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         actions.setOpaque(false);
-        actions.add(Theme.button("Done", Theme.SAGE, Color.WHITE));
-        actions.add(Theme.button("Edit", Theme.PAPER, Theme.BROWN));
-        actions.add(Theme.button("Delete", Theme.ROSE, Color.WHITE));
+        JButton doneBtn = Theme.button(t.done ? "Undo" : "Done", Theme.SAGE, Color.WHITE);
+        JButton editBtn = Theme.button("Edit", Theme.PAPER, Theme.BROWN);
+        JButton deleteBtn = Theme.button("Delete", Theme.ROSE, Color.WHITE);
+
+        doneBtn.addActionListener(e -> {
+            t.done = !t.done;
+            render();
+        });
+
+        editBtn.addActionListener(e -> {
+            editingItem = t;
+            nameField.setText(t.name);
+            descriptionArea.setText(t.description);
+            deadlineField.setText(t.deadline.format(INPUT_FMT));
+            formTitle.setText("Edit Task");
+            toggleForm(true);
+        });
+
+        deleteBtn.addActionListener(e -> {
+            int ok = JOptionPane.showConfirmDialog(this, "Hapus tugas ini?",
+                    "Konfirmasi", JOptionPane.YES_NO_OPTION);
+            if (ok == JOptionPane.YES_OPTION) {
+                items.remove(t);
+                render();
+            }
+        });
+
+        actions.add(doneBtn);
+        actions.add(editBtn);
+        actions.add(deleteBtn);
 
         card.add(text, BorderLayout.CENTER);
         card.add(actions, BorderLayout.SOUTH);
