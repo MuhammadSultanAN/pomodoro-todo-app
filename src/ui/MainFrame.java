@@ -8,6 +8,8 @@ public class MainFrame extends JFrame {
     private final JPanel root = new JPanel(rootLayout);
     private final CardLayout pageLayout = new CardLayout();
     private final JPanel pages = new JPanel(pageLayout);
+    private final StreakManager streakManager = new StreakManager();
+    private StreakPanel streakPanel;
 
     public MainFrame() {
         super("PomodoroTimer | A Journal of Productivity");
@@ -81,9 +83,10 @@ public class MainFrame extends JFrame {
 
         pages.setOpaque(false);
         pages.add(new HomePanel(this::showPage), "dashboard");
-        pages.add(new TimerPanel(), "timer");
+        pages.add(new TimerPanel(streakManager), "timer");
         pages.add(new TaskPanel(), "tasks");
-        pages.add(new StreakPanel(), "streak");
+        streakPanel = new StreakPanel(streakManager);
+        pages.add(streakPanel, "streak");
         app.add(pages, BorderLayout.CENTER);
 
         JLabel footer = new JLabel("Stay Focused, Stay Productive.", SwingConstants.CENTER);
@@ -96,6 +99,10 @@ public class MainFrame extends JFrame {
 
     private void showPage(String name) {
         pageLayout.show(pages, name);
+        
+        if (name.equals("streak") && streakPanel != null) {
+            streakPanel.refreshData();
+        }
     }
 
     public static void main(String[] args) {

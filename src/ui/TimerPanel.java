@@ -11,8 +11,10 @@ public class TimerPanel extends JPanel {
 
     private JLabel display, status, loop;
     private JTextField workField, shortField, longField, loopField;
+    private final StreakManager streakManager;
 
-    public TimerPanel() {
+    public TimerPanel(StreakManager streakManager) {
+        this.streakManager = streakManager;
         Theme.pageHeader(this, "Pomodoro Timer", "Stay focused and make every minute count.");
 
         JPanel timerCard = Theme.cardPanel();
@@ -103,6 +105,9 @@ public class TimerPanel extends JPanel {
             @Override
             public void onSessionCompleted(SessionType completed, SessionType next) {
                 Toolkit.getDefaultToolkit().beep();
+                if (completed == SessionType.WORK) {
+                    streakManager.recordSession();
+                }
             }
         });
     }
