@@ -1,4 +1,5 @@
 package ui;
+import controller.TaskManager;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -9,6 +10,7 @@ public class MainFrame extends JFrame {
     private final CardLayout pageLayout = new CardLayout();
     private final JPanel pages = new JPanel(pageLayout);
     private final StreakManager streakManager = new StreakManager();
+    private final TaskManager taskManager = new TaskManager();
     private StreakPanel streakPanel;
 
     public MainFrame() {
@@ -84,7 +86,7 @@ public class MainFrame extends JFrame {
         pages.setOpaque(false);
         pages.add(new HomePanel(this::showPage), "dashboard");
         pages.add(new TimerPanel(streakManager), "timer");
-        pages.add(new TaskPanel(), "tasks");
+        pages.add(new TaskPanel(taskManager), "tasks");
         streakPanel = new StreakPanel(streakManager);
         pages.add(streakPanel, "streak");
         app.add(pages, BorderLayout.CENTER);

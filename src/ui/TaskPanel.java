@@ -1,8 +1,10 @@
 package ui;
 
+import controller.TaskManager;
+import model.Task;
+
 import javax.swing.*;
 import javax.swing.border.*;
-import java.util.Comparator;
 import java.util.Collections;
 import java.awt.*;
 import java.time.LocalDate;
@@ -10,33 +12,25 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TaskPanel extends JPanel {
-    private static class Item {
-    String name, description;
-    LocalDateTime deadline;
-    boolean done = false;
-    Item(String name, String description, LocalDateTime deadline) {
-        this.name = name;
-        this.description = description;
-        this.deadline = deadline;
-    }
-}
 
     private static final DateTimeFormatter INPUT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final DateTimeFormatter SHOW_FMT = DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm");
 
-    private final List<Item> items = new ArrayList<>();
+    // Semua data tugas disimpan dan dibaca lewat TaskManager (otomatis ke data/tasks.dat)
+    private final TaskManager taskManager;
+
     private JPanel formPanel, cardsPanel;
     private JTextField nameField, deadlineField;
     private JTextArea descriptionArea;
     private JComboBox<String> sortBox;
-    private Item editingItem = null;   // null = mode tambah, isi = mode edit
+    private Task editingTask = null;   // null = mode tambah, isi = mode edit
     private JLabel formTitle;
 
-    public TaskPanel() {
+    public TaskPanel(TaskManager taskManager) {
+        this.taskManager = taskManager;
         Theme.pageHeader(this, "My Tasks", "Organize your daily activities.");
 
         JPanel top = new JPanel(new BorderLayout());
@@ -100,7 +94,7 @@ public class TaskPanel extends JPanel {
     }
 
     private void closeForm() {
-    editingItem = null;
+    editingTask = null;
     formTitle.setText("Add New Task");
     nameField.setText("");
     descriptionArea.setText("");
@@ -176,12 +170,19 @@ public class TaskPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Format deadline harus yyyy-MM-dd HH:mm\nContoh: 2026-12-31 18:00");
             return;
         }
-        if (editingItem != null) {
-            editingItem.name = name;
-            editingItem.description = descriptionArea.getText().trim();
-            editingItem.deadline = deadline;
-        } else {
-            items.add(new Item(name, descriptionArea.getText().trim(), deadline));
+
+        try {
+            if (editingTask != null) {
+                String id = editingTask.getId();
+                taskManager.renameTask(id, name);
+                taskManager.changeDescription(id, descriptionArea.getText());
+                taskManager.changeDeadline(id, deadline);
+            } else {
+                taskManager.addTask(name, descriptionArea.getText(), deadline);
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            return;
         }
         closeForm();
         render();
@@ -189,19 +190,21 @@ public class TaskPanel extends JPanel {
 
     private void render() {
         cardsPanel.removeAll();
-        List<Item> sortedItems = new ArrayList<>(items);
 
+        List<Task> sortedTasks;
         String selectedSort = (String) sortBox.getSelectedItem();
 
         if ("Nearest Deadline".equals(selectedSort)) {
-            sortedItems.sort(Comparator.comparing(t -> t.deadline));
+            sortedTasks = taskManager.getTasksSortedByDeadline(true);
         } else if ("Farthest Deadline".equals(selectedSort)) {
-        sortedItems.sort(Comparator.comparing((Item t) -> t.deadline).reversed());
-        } else if ("Recently Added".equals(selectedSort)) {
-            Collections.reverse(sortedItems);
+            sortedTasks = taskManager.getTasksSortedByDeadline(false);
+        } else {
+            // "Recently Added": yang terbaru di atas
+            sortedTasks = taskManager.getAllTasks();
+            Collections.reverse(sortedTasks);
         }
         
-        if (sortedItems.isEmpty()) {
+        if (sortedTasks.isEmpty()) {
         JPanel empty = Theme.cardPanel();
         empty.setLayout(new BoxLayout(empty, BoxLayout.Y_AXIS));
 
@@ -223,7 +226,7 @@ public class TaskPanel extends JPanel {
         cardsPanel.add(empty);
        }
        
-       for (Item t : sortedItems) {
+       for (Task t : sortedTasks) {
         cardsPanel.add(buildCard(t));
         cardsPanel.add(Box.createVerticalStrut(10));
        }
@@ -232,17 +235,25 @@ public class TaskPanel extends JPanel {
        cardsPanel.repaint();
     }
 
-    private JPanel buildCard(Item t) {
-        long days = ChronoUnit.DAYS.between(LocalDate.now(), t.deadline.toLocalDate());
-        boolean lewat = t.deadline.isBefore(LocalDateTime.now());
+    private JPanel buildCard(Task t) {
+        LocalDateTime deadline = t.getDeadline();   // bisa null (tugas tanpa deadline)
 
         Color accent;
         String status;
-        if (t.done)            { accent = Color.GRAY;               status = "Completed"; }
-        else if (lewat || days < 0) { accent = new Color(173, 105, 105); status = "Overdue"; }
-        else if (days == 0)    { accent = new Color(193, 124, 83);  status = "Due Today"; }
-        else if (days <= 3)    { accent = new Color(198, 167, 93);  status = "Approaching Deadline"; }
-        else                   { accent = Theme.SAGE;               status = "Safe"; }
+        if (t.getIsDone()) {
+            accent = Color.GRAY;
+            status = "Completed";
+        } else if (deadline == null) {
+            accent = Theme.MUTED;
+            status = "No Deadline";
+        } else {
+            long days = ChronoUnit.DAYS.between(LocalDate.now(), deadline.toLocalDate());
+            boolean lewat = deadline.isBefore(LocalDateTime.now());
+            if (lewat || days < 0)  { accent = new Color(173, 105, 105); status = "Overdue"; }
+            else if (days == 0)     { accent = new Color(193, 124, 83);  status = "Due Today"; }
+            else if (days <= 3)     { accent = new Color(198, 167, 93);  status = "Approaching Deadline"; }
+            else                    { accent = Theme.SAGE;               status = "Safe"; }
+        }
 
         JPanel card = Theme.cardPanel();
         card.setLayout(new BorderLayout(10, 5));
@@ -252,13 +263,13 @@ public class TaskPanel extends JPanel {
         JPanel text = new JPanel();
         text.setOpaque(false);
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
-        JLabel desc = new JLabel(t.description.isEmpty() ? "No description" : t.description);
+        JLabel desc = new JLabel(t.getDescription().isEmpty() ? "No description" : t.getDescription());
         desc.setForeground(Theme.MUTED);
-        JLabel due = new JLabel("Deadline: " + t.deadline.format(SHOW_FMT));
+        JLabel due = new JLabel(deadline == null ? "No deadline" : "Deadline: " + deadline.format(SHOW_FMT));
         due.setForeground(Theme.BROWN);
         JLabel stat = new JLabel(status);
         stat.setForeground(accent);
-        text.add(Theme.label(t.name, 21, Theme.DARK_BROWN, true));
+        text.add(Theme.label(t.getTitle(), 21, Theme.DARK_BROWN, true));
         text.add(Box.createVerticalStrut(4));
         text.add(desc);
         text.add(Box.createVerticalStrut(4));
@@ -268,20 +279,20 @@ public class TaskPanel extends JPanel {
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         actions.setOpaque(false);
-        JButton doneBtn = Theme.button(t.done ? "Undo" : "Done", Theme.SAGE, Color.WHITE);
+        JButton doneBtn = Theme.button(t.getIsDone() ? "Undo" : "Done", Theme.SAGE, Color.WHITE);
         JButton editBtn = Theme.button("Edit", Theme.PAPER, Theme.BROWN);
         JButton deleteBtn = Theme.button("Delete", Theme.ROSE, Color.WHITE);
 
         doneBtn.addActionListener(e -> {
-            t.done = !t.done;
+            taskManager.setTaskDone(t.getId(), !t.getIsDone());
             render();
         });
 
         editBtn.addActionListener(e -> {
-            editingItem = t;
-            nameField.setText(t.name);
-            descriptionArea.setText(t.description);
-            deadlineField.setText(t.deadline.format(INPUT_FMT));
+            editingTask = t;
+            nameField.setText(t.getTitle());
+            descriptionArea.setText(t.getDescription());
+            deadlineField.setText(deadline == null ? "" : deadline.format(INPUT_FMT));
             formTitle.setText("Edit Task");
             toggleForm(true);
         });
@@ -290,7 +301,7 @@ public class TaskPanel extends JPanel {
             int ok = JOptionPane.showConfirmDialog(this, "Hapus tugas ini?",
                     "Konfirmasi", JOptionPane.YES_NO_OPTION);
             if (ok == JOptionPane.YES_OPTION) {
-                items.remove(t);
+                taskManager.removeTask(t.getId());
                 render();
             }
         });
