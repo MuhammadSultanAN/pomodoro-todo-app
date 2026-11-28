@@ -15,7 +15,14 @@ public class TimerPanel extends JPanel {
 
     public TimerPanel(StreakManager streakManager) {
         this.streakManager = streakManager;
-        Theme.pageHeader(this, "Pomodoro Timer", "Stay focused and make every minute count.");
+        setLayout(new BorderLayout());
+        setBackground(Theme.CREAM);
+
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBackground(Theme.CREAM);
+
+        Theme.pageHeader(content, "Pomodoro Timer", "Stay focused and make every minute count.");
 
         JPanel timerCard = Theme.cardPanel();
         timerCard.setLayout(new BoxLayout(timerCard, BoxLayout.Y_AXIS));
@@ -61,8 +68,8 @@ public class TimerPanel extends JPanel {
         timerCard.add(Box.createVerticalStrut(14));
         timerCard.add(loop);
         Theme.align(timerCard, Component.CENTER_ALIGNMENT, true);
-        add(timerCard);
-        add(Box.createVerticalStrut(18));
+        content.add(timerCard);
+        content.add(Box.createVerticalStrut(18));
 
         // Pengaturan
         JPanel settings = Theme.cardPanel();
@@ -78,9 +85,25 @@ public class TimerPanel extends JPanel {
         JButton saveBtn = Theme.button("Save Settings", Theme.SAGE, Color.WHITE);
         saveBtn.addActionListener(e -> saveSettings());
         settings.add(saveBtn, BorderLayout.SOUTH);
-        add(settings);
+        content.add(settings);
 
-        Theme.align(this, Component.LEFT_ALIGNMENT, true);
+        Theme.align(content, Component.LEFT_ALIGNMENT, true);
+        JScrollPane scrollPane = new JScrollPane(content);
+
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        scrollPane.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+        );
+
+        scrollPane.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+
+        scrollPane.getViewport().setBackground(Theme.CREAM);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        add(scrollPane, BorderLayout.CENTER);
 
         attachLogic(); // dipanggil setelah semua komponen dibuat
     }
