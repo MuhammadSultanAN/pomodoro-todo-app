@@ -83,10 +83,10 @@ public class TaskPanel extends JPanel {
         JPanel legend = Theme.cardPanel();
         legend.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 8));
         legend.add(Theme.label("Deadline Status:", 16, Theme.DARK_BROWN, true));
-        legend.add(new JLabel("🟢 Safe"));
-        legend.add(new JLabel("🟡 Approaching"));
-        legend.add(new JLabel("🟠 Due Today"));
-        legend.add(new JLabel("🔴 Overdue"));
+        legend.add(legendItem("Safe", new Color(76, 145, 95)));
+        legend.add(legendItem("Approaching", new Color(198, 167, 93)));
+        legend.add(legendItem("Due Today", new Color(193, 124, 83)));
+        legend.add(legendItem("Overdue", new Color(173, 105, 105)));
         add(legend);
 
         Theme.align(this, Component.LEFT_ALIGNMENT, true);
@@ -306,4 +306,33 @@ public class TaskPanel extends JPanel {
         return card;
     }
 
+    private JLabel legendItem(String text, Color color) {
+    JLabel label = new JLabel(text);
+    label.setIcon(new DotIcon(color));
+    label.setIconTextGap(6);
+    return label;
+    }
+    
+    private static class DotIcon implements Icon {
+        private final Color color;
+        
+        public DotIcon(Color color) {
+            this.color = color;
+        } 
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(color);
+            g.fillOval(x, y + 3, 10, 10);
+        }
+        
+        @Override
+        public int getIconWidth() {
+            return 10;
+        }
+        
+        @Override
+        public int getIconHeight() {
+            return 16;
+        }
+    }
 }
