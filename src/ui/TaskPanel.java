@@ -65,12 +65,21 @@ public class TaskPanel extends JPanel {
         cardsPanel = new JPanel();
         cardsPanel.setOpaque(false);
         cardsPanel.setLayout(new BoxLayout(cardsPanel, BoxLayout.Y_AXIS));
+
         JScrollPane scroll = new JScrollPane(cardsPanel);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setOpaque(false);
         scroll.setOpaque(false);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-        scroll.setPreferredSize(new Dimension(800, 280));
+        scroll.setHorizontalScrollBarPolicy(
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+
+        scroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 450));
+        scroll.setPreferredSize(new Dimension(800, 450));
+        scroll.setMinimumSize(new Dimension(0, 200));
+
         add(scroll);
         add(Box.createVerticalStrut(15));
 
@@ -84,6 +93,12 @@ public class TaskPanel extends JPanel {
         add(legend);
 
         Theme.align(this, Component.LEFT_ALIGNMENT, true);
+
+        Component scrollComponent = getComponent(6);
+        scrollComponent.setMaximumSize(
+            new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)
+        );
+
         render();
     }
 
